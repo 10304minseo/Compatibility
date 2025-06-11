@@ -1,102 +1,58 @@
 import streamlit as st
 
-# 초성, 중성, 종성 획수표
-CHO_STROKES = [2, 4, 2, 3, 6, 5, 4, 4, 8, 2, 4, 1, 3, 6, 4, 3, 4, 4, 3]
-JUNG_STROKES = [2, 3, 2, 3, 2, 3, 2, 3, 1, 1, 3, 3, 4, 4, 3, 3, 4, 4, 2, 2, 4]
-JONG_STROKES = [0,2,4,2,3,6,5,4,4,8,2,4,1,3,6,4,3,4,4,3,2,4,2,3,3,1,2,4]
-
-def get_stroke_count(name):
-    total = 0
-    for char in name:
-        code = ord(char)
-        if 0xAC00 <= code <= 0xD7A3:
-            base = code - 0xAC00
-            cho = base // 588
-            jung = (base % 588) // 28
-            jong = base % 28
-            total += CHO_STROKES[cho] + JUNG_STROKES[jung] + JONG_STROKES[jong]
-    return total
-
-def calculate_compatibility(name1, name2):
-    total1 = get_stroke_count(name1)
-    total2 = get_stroke_count(name2)
-    score = 100 - abs(total1 - total2) * 3
-    return max(0, min(score, 100))
-
-# 빈티지 스타일 적용
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
-
     html, body, [class*="css"] {
-        font-family: 'Special Elite', monospace;
-        background-color: #f8f1e5;
+        font-family: 'Special Elite', cursive;
+        background-color: #fdf6e3;
         color: #4b3b2f;
     }
-
     .title {
-        font-size: 48px;
         text-align: center;
-        margin-bottom: 10px;
+        font-size: 48px;
+        margin-bottom: 20px;
         color: #6e4f3a;
     }
-
-    .subtitle {
-        font-size: 20px;
-        text-align: center;
-        color: #9c7e65;
-    }
-
-    .result-box {
-        border: 2px dashed #7b5e43;
-        background-color: #fdf6e3;
+    .result {
+        background-color: #fff8e6;
+        border: 2px dashed #c2a270;
+        border-radius: 10px;
         padding: 20px;
-        border-radius: 8px;
         margin-top: 30px;
-        font-size: 18px;
-    }
-
-    .footer {
-        font-size: 13px;
-        text-align: center;
-        color: #aaa;
-        margin-top: 50px;
+        font-size: 20px;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# 타이틀 🎞️
-st.markdown('<div class="title">💌 이름 궁합 타자기</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">🪶 옛 감성으로 보는 두 사람의 인연 궁합 📜</div>', unsafe_allow_html=True)
+st.markdown('<div class="title">💘 키 궁합 계산기</div>', unsafe_allow_html=True)
+st.write("당신의 키를 입력하면, 당신에게 잘 어울리는 이상형의 키 범위를 알려드려요! 🥰")
 
-# 입력받기
-name1 = st.text_input("🌸 당신의 이름 (한글만)", max_chars=10)
-name2 = st.text_input("🌼 상대방 이름 (한글만)", max_chars=10)
+gender = st.radio("당신의 성별은?", ["여자", "남자"])
+height = st.number_input("당신의 키를 입력하세요 (cm)", min_value=100, max_value=250, step=1)
 
-# 궁합 결과 출력
-if st.button("🔍 이름 궁합 보기"):
-    if name1 and name2:
-        score = calculate_compatibility(name1, name2)
-
-        # 메시지 출력
-        if score >= 90:
-            message = "🌟 운명적인 만남이에요! 두 분은 찰떡궁합 💑"
-        elif score >= 70:
-            message = "💖 서로 잘 이해하고 배려할 수 있는 커플이에요!"
-        elif score >= 50:
-            message = "🌿 대화와 노력이 필요하지만 괜찮은 궁합이에요."
+if st.button("🔍 이상형 키 알아보기"):
+    if height:
+        if gender == "여자":
+            min_match = height + 10
+            max_match = height + 15
+            st.markdown(f"""
+                <div class='result'>
+                💃 당신의 키는 <b>{height}cm</b> 이군요!<br><br>
+                🕺 당신과 잘 어울리는 이상형의 키는 <b>{min_match}cm ~ {max_match}cm</b> 입니다.<br><br>
+                ✨ 키 차이가 자연스럽고 포근한 케미를 만들어줄 거예요 💖
+                </div>
+            """, unsafe_allow_html=True)
         else:
-            message = "📦 인연을 이어가려면 서로를 더 알아가야 해요."
-
-        st.markdown(f"""
-            <div class="result-box">
-                ✉️ <b>{name1}</b> ❤️ <b>{name2}</b><br><br>
-                🔢 획수 궁합 점수: <b>{score}%</b><br><br>
-                {message}
-            </div>
-        """, unsafe_allow_html=True)
+            min_match = height - 15
+            max_match = height - 10
+            st.markdown(f"""
+                <div class='result'>
+                🕺 당신의 키는 <b>{height}cm</b> 이군요!<br><br>
+                💃 당신과 잘 어울리는 이상형의 키는 <b>{min_match}cm ~ {max_match}cm</b> 입니다.<br><br>
+                ✨ 눈높이도 맞고, 사진 찍을 때도 예쁜 조합이에요 📸💕
+                </div>
+            """, unsafe_allow_html=True)
     else:
-        st.warning("이름을 모두 입력해주세요 💬")
+        st.warning("키를 입력해 주세요!")
 
-# Footer
-st.markdown('<div class="footer">📻 made with love by Vintage Harmony Calculator</div>', unsafe_allow_html=True)
