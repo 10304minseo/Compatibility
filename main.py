@@ -1,27 +1,19 @@
 import streamlit as st
 
-# 한글 자모의 획수 사전 (예시, 더 정교하게 확장 가능)
-hangeul_stroke = {
-    'ㄱ': 2, 'ㄲ': 4, 'ㄴ': 2, 'ㄷ': 3, 'ㄸ': 6, 'ㄹ': 5, 'ㅁ': 4, 'ㅂ': 4, 'ㅃ': 8, 'ㅅ': 2,
-    'ㅆ': 4, 'ㅇ': 1, 'ㅈ': 3, 'ㅉ': 6, 'ㅊ': 4, 'ㅋ': 3, 'ㅌ': 4, 'ㅍ': 4, 'ㅎ': 3,
-    'ㅏ': 2, 'ㅑ': 3, 'ㅓ': 2, 'ㅕ': 3, 'ㅗ': 2, 'ㅛ': 3, 'ㅜ': 2, 'ㅠ': 3,
-    'ㅡ': 1, 'ㅣ': 1, 'ㅐ': 3, 'ㅔ': 3, 'ㅒ': 4, 'ㅖ': 4, 'ㅚ': 3, 'ㅟ': 3,
-    'ㅙ': 4, 'ㅞ': 4, 'ㅢ': 2
-}
+# 한글 초성/중성/종성 획수 사전
+CHO_STROKES = [2, 4, 2, 3, 6, 5, 4, 4, 8, 2, 4, 1, 3, 6, 4, 3, 4, 4, 3]
+JUNG_STROKES = [2, 3, 2, 3, 2, 3, 2, 3, 1, 1, 3, 3, 4, 4, 3, 3, 4, 4, 2, 2, 4]
+JONG_STROKES = [0,2,4,2,3,6,5,4,4,8,2,4,1,3,6,4,3,4,4,3,2,4,2,3,3,1,2,4]
 
-from hangul_utils import split_syllable_char  # 외부 모듈 필요
-# 설치: pip install hangul-utils
-
-def get_stroke_count(name):
+def get_stroke_count(hangul):
     total = 0
-    for char in name:
-        if not ('가' <= char <= '힣'):
-            continue
-        chosung, jungsung, jongsung = split_syllable_char(char)
-        total += hangeul_stroke.get(chosung, 1)
-        total += hangeul_stroke.get(jungsung, 1)
-        if jongsung:
-            total += hangeul_stroke.get(jongsung, 1)
+    for char in hangul:
+        if ord('가') <= ord(char) <= ord('힣'):
+            base = ord(char) - 0xAC00
+            cho = base // 588
+            jung = (base % 588) // 28
+            jong = base % 28
+            total += CHO_STROKES[cho] + JUNG_STROKES[jung] + JONG_STROKES[jong]
     return total
 
 def calculate_compatibility(name1, name2):
@@ -30,13 +22,13 @@ def calculate_compatibility(name1, name2):
     score = 100 - abs(total1 - total2) * 3
     return max(0, min(score, 100))
 
-# 🎨 빈티지 스타일 설정
+# 🎨 빈티지 스타일
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
 
     html, body, [class*="css"] {
-        font-family: 'Special Elite', monospace;
+        font-family: 'Special+Elite', monospace;
         background-color: #f8f1e5;
         color: #4b3b2f;
     }
@@ -76,7 +68,7 @@ st.markdown("""
 st.markdown('<div class="title">💌 이름 궁합 타자기</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">🪶 옛 감성으로 보는 두 사람의 인연 궁합 📜</div>', unsafe_allow_html=True)
 
-# 입력 폼 ✍️
+# 입력 ✍️
 name1 = st.text_input("🌸 당신의 이름", max_chars=10)
 name2 = st.text_input("🌼 상대방 이름", max_chars=10)
 
@@ -85,7 +77,7 @@ if st.button("🔍 이름 궁합 보기"):
     if name1 and name2:
         score = calculate_compatibility(name1, name2)
 
-        # 💘 이모지 기반 감성 메시지
+        # 감성 메시지 💘
         if score >= 90:
             message = "🌟 운명적인 만남이에요! 두 분은 찰떡궁합 💑"
         elif score >= 70:
@@ -95,7 +87,6 @@ if st.button("🔍 이름 궁합 보기"):
         else:
             message = "📦 인연을 이어가려면 서로를 더 알아가야 해요."
 
-        # 출력 결과
         st.markdown(f"""
             <div class="result-box">
                 ✉️ <b>{name1}</b> ❤️ <b>{name2}</b><br><br>
